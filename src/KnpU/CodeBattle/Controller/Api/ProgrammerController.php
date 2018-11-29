@@ -28,6 +28,7 @@ class ProgrammerController extends BaseController
         $controllers->get('/api/programmer/{nickname}', array($this, 'showAction'))
                     ->bind('api_programmer_show');
         $controllers->get('/api/programmers', array($this, 'listAction'));
+        $controllers->put('/api/programmers/{nickname}', array($this, 'updateAction'));
     }
 
     public function newAction(Request $request) {
@@ -77,6 +78,29 @@ class ProgrammerController extends BaseController
 
         $response = new Response(json_encode($data), 200);
         $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+    public function updateAction($nickname, Request $request) {
+        $programmer = $this->getProgrammerRepository()->findOneByNickname($nickname);
+
+        if (!$programmer) {
+            $this->throw404();
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $programmer->nickname = $data['nickname'];
+        $programmer->avatarNumber = $data['avatarNumber'];
+        $programmer->tagLine = $data['tagLine'];
+        $programmer->userId = $this->findUserByUsername('weaverryan')->id;
+
+        $this->save($programmer);
+
+        $data = $this->serializeProgrammer($programmer);
+
+        $response = new JsonResponse($data, 200);
 
         return $response;
     }

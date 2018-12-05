@@ -71,10 +71,11 @@ class ProgrammerController extends BaseController
         if ($programmerFound) {
             $data = [
                 'type' => 'validation_error',
-                'title' => 'There was a validation error',
-                'errors' => 'nickname already exists'
+                'title' => 'There was a validation error'
             ];
-            return new JsonResponse($data, 400);
+            $response = new JsonResponse($data, 400);
+            $response->headers->set('Content-Type', 'application/problem+json');
+            return $response;
         }
 
 

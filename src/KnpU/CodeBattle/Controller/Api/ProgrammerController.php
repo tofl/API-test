@@ -66,6 +66,18 @@ class ProgrammerController extends BaseController
         $programmer = new Programmer();
         $this->handleRequest($request, $programmer);
 
+
+        $programmerFound = $this->getProgrammerRepository()->findOneByNickname($data['nickname']);
+        if ($programmerFound) {
+            $data = [
+                'type' => 'validation_error',
+                'title' => 'There was a validation error',
+                'errors' => 'nickname already exists'
+            ];
+            return new JsonResponse($data, 400);
+        }
+
+
         $this->save($programmer);
 
         $programmerUrl = $this->generateUrl(

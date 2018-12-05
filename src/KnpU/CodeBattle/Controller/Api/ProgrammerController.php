@@ -27,7 +27,7 @@ class ProgrammerController extends BaseController
         $isNew = !$programmer->id;
 
         if ($data === null) {
-            throw new \Exception(sprintf('Invalid JSON: '.$request->getContent()));
+            throw new \Exception(sprintf('Invalid JSON: ' . $request->getContent()));
         }
 
         // determine which properties should be changeable on this request
@@ -38,6 +38,9 @@ class ProgrammerController extends BaseController
 
         // update the properties
         foreach ($apiProperties as $property) {
+            if (!isset($data[$property]) && $request->isMethod('PATCH')) {
+                continue;
+            }
             $val = isset($data[$property]) ? $data[$property] : null;
             $programmer->$property = $val;
         }
@@ -52,6 +55,9 @@ class ProgrammerController extends BaseController
                     ->bind('api_programmer_show');
         $controllers->get('/api/programmers', array($this, 'listAction'));
         $controllers->put('/api/programmers/{nickname}', array($this, 'updateAction'));
+        $controllers->delete('/api/programmers/{nickname}', array($this, 'deleteAction'));
+        $controllers->match('/api/programmers/{nickname}', array($this, 'updateAction'))
+                    ->method('PATCH');
     }
 
     public function newAction(Request $request) {
@@ -119,6 +125,16 @@ class ProgrammerController extends BaseController
         $response = new JsonResponse($data, 200);
 
         return $response;
+    }
+
+    public function deleteAction($nickname, Request $request) {
+        $programmer = $this->getProgrammerRepository()->findOneByNickname($nickname);
+
+        if ($programmer) {
+            $this->delete($programmer);
+        }
+
+        return new Response(null, 204);
     }
 
 }
